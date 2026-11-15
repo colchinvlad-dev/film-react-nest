@@ -1,20 +1,53 @@
-export interface TicketDto {
+import { Type } from 'class-transformer';
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsEmail,
+  IsInt,
+  IsNotEmpty,
+  IsString,
+  IsUUID,
+  Min,
+  ValidateNested,
+} from 'class-validator';
+
+export class CreateTicketDto {
+  @IsUUID()
+  film!: string;
+
+  @IsUUID()
+  session!: string;
+
+  @IsInt()
+  @Min(1)
+  row!: number;
+
+  @IsInt()
+  @Min(1)
+  seat!: number;
+}
+
+export class CreateOrderDto {
+  @IsEmail()
+  email!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  phone!: string;
+
+  @IsArray()
+  @ArrayNotEmpty()
+  @ValidateNested({ each: true })
+  @Type(() => CreateTicketDto)
+  tickets!: CreateTicketDto[];
+}
+
+export interface OrderResultDto {
+  id: string;
   film: string;
   session: string;
   daytime: string;
-  day?: string;
-  time?: string;
   row: number;
   seat: number;
   price: number;
-}
-
-export interface OrderDto {
-  email: string;
-  phone: string;
-  tickets: TicketDto[];
-}
-
-export interface OrderResultDto extends TicketDto {
-  id: string;
 }

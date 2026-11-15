@@ -8,7 +8,7 @@ import { randomUUID } from 'node:crypto';
 import { FilmRepository } from '../repository/film.repository';
 import { FilmRepositoryToken } from '../repository/film.repository.provider';
 import { ScheduleDto } from '../films/dto/films.dto';
-import { OrderDto, OrderResultDto } from './dto/order.dto';
+import { CreateOrderDto, OrderResultDto } from './dto/order.dto';
 
 const ticketKey = (row: number, seat: number) => `${row}:${seat}`;
 
@@ -19,7 +19,7 @@ export class OrderService {
     private readonly filmRepository: FilmRepository,
   ) {}
 
-  async createOrder(order: OrderDto): Promise<OrderResultDto[]> {
+  async createOrder(order: CreateOrderDto): Promise<OrderResultDto[]> {
     const results: OrderResultDto[] = [];
 
     for (const ticket of order.tickets) {
@@ -33,6 +33,10 @@ export class OrderService {
       );
       if (!schedule) {
         throw new NotFoundException('Сеанс не найден');
+      }
+
+      if (ticket.row > schedule.rows || ticket.seat > schedule.seats) {
+        throw new BadRequestException('Место находится за пределами зала');
       }
 
       const key = ticketKey(ticket.row, ticket.seat);

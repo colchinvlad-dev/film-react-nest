@@ -4,7 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import * as path from 'node:path';
 
-import { configProvider } from './app.config.provider';
+import { AppConfigModule, CONFIG } from './app.config.provider';
 import { FilmsModule } from './films/films.module';
 import { OrderModule } from './order/order.module';
 
@@ -18,15 +18,16 @@ import { OrderModule } from './order/order.module';
       rootPath: path.join(__dirname, '..', 'public'),
     }),
     MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: () => ({
-        uri: process.env.DATABASE_URL ?? 'mongodb://localhost:27017/prac',
+      inject: [CONFIG],
+      useFactory: (config) => ({
+        uri: config.database.url,
       }),
     }),
     FilmsModule,
     OrderModule,
+    AppConfigModule,
   ],
   controllers: [],
-  providers: [configProvider],
+  providers: [],
 })
 export class AppModule {}
