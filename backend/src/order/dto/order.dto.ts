@@ -5,6 +5,8 @@ import {
   IsEmail,
   IsInt,
   IsNotEmpty,
+  IsNumber,
+  IsOptional,
   IsString,
   IsUUID,
   Min,
@@ -18,6 +20,10 @@ export class CreateTicketDto {
   @IsUUID()
   session!: string;
 
+  @IsOptional()
+  @IsString()
+  daytime?: string;
+
   @IsInt()
   @Min(1)
   row!: number;
@@ -25,6 +31,10 @@ export class CreateTicketDto {
   @IsInt()
   @Min(1)
   seat!: number;
+
+  @IsOptional()
+  @IsNumber()
+  price?: number;
 }
 
 export class CreateOrderDto {
