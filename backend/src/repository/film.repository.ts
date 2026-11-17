@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Film } from '../films/schemas/film.schema';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Film } from '../films/entities/film.entity';
+import { Schedule } from '../films/entities/schedule.entity';
 import { FilmDto, ScheduleDto } from '../films/dto/films.dto';
 
 export interface FilmRepository {
@@ -11,54 +12,71 @@ export interface FilmRepository {
   saveTaken(filmId: string, sessionId: string, taken: string[]): Promise<void>;
 }
 
-const mapFilm = (film: Film): FilmDto => ({
-  id: film.id,
-  rating: film.rating,
-  director: film.director,
-  tags: film.tags,
-  image: film.image,
-  cover: film.cover,
-  title: film.title,
-  about: film.about,
-  description: film.description,
-  ...(film.schedule ? { schedule: film.schedule.map(mapSchedule) } : {}),
-});
+const parseTags = (tags: string): string[] =>
+  tags
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter(Boolean);
 
-const mapSchedule = (schedule: ScheduleDto): ScheduleDto => ({
+const parseTaken = (taken: string): string[] =>
+  taken
+    .split(',')
+    .map((seat) => seat.trim())
+    .filter(Boolean);
+
+const joinTaken = (taken: string[]): string => taken.join(',');
+
+const mapSchedule = (schedule: Schedule): ScheduleDto => ({
   id: schedule.id,
   daytime: schedule.daytime,
   hall: schedule.hall,
   rows: schedule.rows,
   seats: schedule.seats,
   price: schedule.price,
-  taken: schedule.taken,
+  taken: parseTaken(schedule.taken),
+});
+
+const mapFilm = (film: Film): FilmDto => ({
+  id: film.id,
+  rating: film.rating,
+  director: film.director,
+  tags: parseTags(film.tags),
+  image: film.image,
+  cover: film.cover,
+  title: film.title,
+  about: film.about,
+  description: film.description,
+  schedule: film.schedule?.map(mapSchedule),
 });
 
 @Injectable()
-export class MongoFilmRepository implements FilmRepository {
-  constructor(@InjectModel(Film.name) private filmModel: Model<Film>) {}
+export class PostgresFilmRepository implements FilmRepository {
+  constructor(
+    @InjectRepository(Film)
+    private readonly filmRepository: Repository<Film>,
+    @InjectRepository(Schedule)
+    private readonly scheduleRepository: Repository<Schedule>,
+  ) {}
 
   async getFilms(): Promise<FilmDto[]> {
-    const films = await this.filmModel.find().select('-__v').lean().exec();
+    const films = await this.filmRepository.find({ relations: ['schedule'] });
     return films.map(mapFilm);
   }
 
   async getFilm(filmId: string): Promise<FilmDto | null> {
-    const film = await this.filmModel
-      .findOne({ id: filmId })
-      .select('-__v')
-      .lean()
-      .exec();
+    const film = await this.filmRepository.findOne({
+      where: { id: filmId },
+      relations: ['schedule'],
+    });
     return film ? mapFilm(film) : null;
   }
 
   async getSchedule(filmId: string): Promise<ScheduleDto[] | null> {
-    const film = await this.filmModel
-      .findOne({ id: filmId })
-      .select('-__v')
-      .lean()
-      .exec();
-    return film ? (film.schedule ?? []).map(mapSchedule) : null;
+    const film = await this.filmRepository.findOne({
+      where: { id: filmId },
+      relations: ['schedule'],
+    });
+    return film ? film.schedule.map(mapSchedule) : null;
   }
 
   async saveTaken(
@@ -66,11 +84,9 @@ export class MongoFilmRepository implements FilmRepository {
     sessionId: string,
     taken: string[],
   ): Promise<void> {
-    await this.filmModel
-      .updateOne(
-        { id: filmId, 'schedule.id': sessionId },
-        { $set: { 'schedule.$.taken': taken } },
-      )
-      .exec();
+    await this.scheduleRepository.update(
+      { id: sessionId, filmId },
+      { taken: joinTaken(taken) },
+    );
   }
 }

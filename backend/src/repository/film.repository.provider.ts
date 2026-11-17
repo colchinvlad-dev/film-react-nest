@@ -1,9 +1,9 @@
 import { Provider } from '@nestjs/common';
-import { MongoFilmRepository } from './film.repository';
+import { PostgresFilmRepository } from './film.repository';
 
-export const FilmRepositoryToken = 'FilmRepository';
+export const FilmRepositoryToken = 'FilmServiceRepository';
 
 export const FilmRepositoryProvider: Provider = {
   provide: FilmRepositoryToken,
-  useClass: MongoFilmRepository,
+  useClass: PostgresFilmRepository,
 };
