@@ -9,11 +9,14 @@ export const configProvider = {
     return {
       port: Number(process.env.PORT ?? 3000),
       database: {
-        driver: process.env.DATABASE_DRIVER ?? 'mongodb',
-        url: process.env.DATABASE_URL ?? 'mongodb://localhost:27017/prac',
+        driver: process.env.DATABASE_DRIVER ?? 'postgres',
+        url: process.env.DATABASE_URL ?? 'postgres://localhost:5432/films',
+        username: process.env.DATABASE_USERNAME ?? '',
+        password: process.env.DATABASE_PASSWORD ?? '',
       },
     };
   },
+  inject: [],
 };
 
 export interface AppConfig {
@@ -24,6 +27,8 @@ export interface AppConfig {
 export interface AppConfigDatabase {
   driver: string;
   url: string;
+  username: string;
+  password: string;
 }
 
 @Global()
