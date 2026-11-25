@@ -21,7 +21,11 @@ jobs:
       packages: write
     strategy:
       matrix:
-        service: [backend, server]
+        include:
+          - service: backend
+            dockerfile: backend/Dockerfile
+          - service: server
+            dockerfile: nginx/Dockerfile
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -50,7 +54,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ${{ matrix.service }}/Dockerfile
+          file: ${{ matrix.dockerfile }}
           push: true
           tags: ${{ steps.tags.outputs.tags }}
           cache-from: type=gha,scope=${{ matrix.service }}
