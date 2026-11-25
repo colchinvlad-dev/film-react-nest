@@ -1,4 +1,5 @@
 import { Test } from '@nestjs/testing';
+import { NotFoundException } from '@nestjs/common';
 import { FilmsController } from './films.controller';
 import { FilmsService } from './films.service';
 import { FilmDto, ScheduleDto } from './dto/films.dto';
@@ -74,6 +75,16 @@ describe('FilmsController', () => {
       service.getSchedule.mockResolvedValue([]);
       const result = await controller.getSchedule(film.id);
       expect(result).toEqual({ total: 0, items: [] });
+    });
+
+    it('должен пробросить NotFoundException, если фильм не найден', async () => {
+      service.getSchedule.mockRejectedValue(
+        new NotFoundException('Фильм не найден'),
+      );
+      await expect(controller.getSchedule('несуществующий-id')).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(service.getSchedule).toHaveBeenCalledWith('несуществующий-id');
     });
   });
 });

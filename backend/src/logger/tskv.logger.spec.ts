@@ -33,19 +33,18 @@ describe('TskvLogger', () => {
   });
 
   describe('методы вывода', () => {
-    it('log должен выводить отформатированную строку в console.log', () => {
-      const spy = jest
-        .spyOn(console, 'log')
-        .mockImplementation(() => undefined);
+    const writeSpy = () =>
+      jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
+
+    it('log должен выводить отформатированную строку через process.stdout.write', () => {
+      const spy = writeSpy();
       logger.log('hello');
       expect(spy).toHaveBeenCalledWith('level=log\tmessage=hello\n');
       spy.mockRestore();
     });
 
-    it('error должен выводить в console.log с уровнем error', () => {
-      const spy = jest
-        .spyOn(console, 'log')
-        .mockImplementation(() => undefined);
+    it('error должен выводить через process.stdout.write с уровнем error', () => {
+      const spy = writeSpy();
       logger.error('boom');
       expect(spy).toHaveBeenCalledWith('level=error\tmessage=boom\n');
       spy.mockRestore();

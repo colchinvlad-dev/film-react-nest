@@ -1,9 +1,12 @@
-FROM nginx:1.25-alpine
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY frontend/package.json frontend/package-lock.json* ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
 
-# Копируем конфигурацию nginx
+FROM nginx:1.25-alpine AS publish
 COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
-
-# Директория куда будет смонтирован собранный фронтенд
-RUN mkdir -p /var/www/frontend
+COPY --from=build /app/dist /var/www/frontend
 
 EXPOSE 80

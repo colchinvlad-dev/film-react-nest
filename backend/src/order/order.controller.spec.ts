@@ -57,7 +57,7 @@ describe('OrderController', () => {
       expect(service.createOrder).toHaveBeenCalledWith(orderDto);
     });
 
-    it('должен пробросить ошибку из сервиса при невалидном запросе', async () => {
+    it('должен пробросить ошибку сервиса, если место уже занято', async () => {
       service.createOrder.mockRejectedValue(new Error('Место 1:1 уже занято'));
       await expect(controller.createOrder(orderDto)).rejects.toThrow(
         'Место 1:1 уже занято',

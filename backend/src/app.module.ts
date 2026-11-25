@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import * as path from 'node:path';
 
 import { AppConfigModule, CONFIG } from './app.config.provider';
+import { LoggerModule } from './logger/logger.module';
 import { FilmsModule } from './films/films.module';
 import { OrderModule } from './order/order.module';
 import { Film } from './films/entities/film.entity';
@@ -33,6 +34,7 @@ import { Schedule } from './films/entities/schedule.entity';
     FilmsModule,
     OrderModule,
     AppConfigModule,
+    LoggerModule,
   ],
   controllers: [],
   providers: [],

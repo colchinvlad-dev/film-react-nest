@@ -1,4 +1,8 @@
-import { ValidationPipe, LoggerService } from '@nestjs/common';
+import {
+  ValidationPipe,
+  LoggerService,
+  INestApplication,
+} from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { CONFIG } from './app.config.provider';
@@ -6,17 +10,17 @@ import { DevLogger } from './logger/dev.logger';
 import { JsonLogger } from './logger/json.logger';
 import { TskvLogger } from './logger/tskv.logger';
 
-function resolveLogger(): LoggerService {
+function resolveLogger(app: INestApplication): LoggerService {
   const format = process.env.LOG_FORMAT ?? 'dev';
 
   switch (format) {
     case 'json':
-      return new JsonLogger();
+      return app.get(JsonLogger);
     case 'tskv':
-      return new TskvLogger();
+      return app.get(TskvLogger);
     case 'dev':
     default:
-      return new DevLogger();
+      return app.get(DevLogger);
   }
 }
 
@@ -24,7 +28,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
   });
-  app.useLogger(resolveLogger());
+  app.useLogger(resolveLogger(app));
   const config = app.get(CONFIG);
   app.setGlobalPrefix('api/afisha');
   app.enableCors();

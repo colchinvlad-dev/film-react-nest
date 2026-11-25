@@ -7,7 +7,7 @@ const escapeField = (value: string): string =>
 
 @Injectable()
 export class TskvLogger implements LoggerService {
-  formatMessage(level: string, message: any, ...optionalParams: any[]) {
+  formatMessage(level: string, message: unknown, ...optionalParams: unknown[]) {
     const fields: string[] = [`level=${escapeField(level)}`];
 
     if (message === undefined || message === null || message === '') {
@@ -15,41 +15,43 @@ export class TskvLogger implements LoggerService {
     } else if (typeof message === 'object') {
       fields.push(`message=${escapeField(JSON.stringify(message))}`);
     } else {
-      fields.push(`message=${escapeField(message)}`);
+      fields.push(`message=${escapeField(String(message))}`);
     }
 
     if (optionalParams.length > 0) {
-      fields.push(`context=${escapeField(optionalParams.join(','))}`);
+      fields.push(
+        `context=${escapeField(optionalParams.map(String).join(','))}`,
+      );
     }
 
     return `${fields.join('\t')}\n`;
   }
 
-  log(message: any, ...optionalParams: any[]) {
+  log(message: unknown, ...optionalParams: unknown[]) {
     this.write('log', message, optionalParams);
   }
 
-  error(message: any, ...optionalParams: any[]) {
+  error(message: unknown, ...optionalParams: unknown[]) {
     this.write('error', message, optionalParams);
   }
 
-  warn(message: any, ...optionalParams: any[]) {
+  warn(message: unknown, ...optionalParams: unknown[]) {
     this.write('warn', message, optionalParams);
   }
 
-  debug?(message: any, ...optionalParams: any[]) {
+  debug?(message: unknown, ...optionalParams: unknown[]) {
     this.write('debug', message, optionalParams);
   }
 
-  verbose?(message: any, ...optionalParams: any[]) {
+  verbose?(message: unknown, ...optionalParams: unknown[]) {
     this.write('verbose', message, optionalParams);
   }
 
-  fatal?(message: any, ...optionalParams: any[]) {
+  fatal?(message: unknown, ...optionalParams: unknown[]) {
     this.write('fatal', message, optionalParams);
   }
 
-  private write(level: string, message: any, optionalParams: any[]) {
-    console.log(this.formatMessage(level, message, ...optionalParams));
+  private write(level: string, message: unknown, optionalParams: unknown[]) {
+    process.stdout.write(this.formatMessage(level, message, ...optionalParams));
   }
 }

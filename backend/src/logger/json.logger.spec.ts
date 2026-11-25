@@ -61,5 +61,35 @@ describe('JsonLogger', () => {
       expect(spy).toHaveBeenCalled();
       spy.mockRestore();
     });
+
+    it.each([
+      {
+        method: 'debug' as const,
+        level: 'DEBUG',
+        consoleMethod: 'debug' as const,
+      },
+      {
+        method: 'verbose' as const,
+        level: 'VERBOSE',
+        consoleMethod: 'log' as const,
+      },
+      {
+        method: 'fatal' as const,
+        level: 'FATAL',
+        consoleMethod: 'error' as const,
+      },
+    ])(
+      '$method должен выводить в console.$consoleMethod сообщение уровня $level',
+      ({ method, level, consoleMethod }) => {
+        const spy = jest
+          .spyOn(console, consoleMethod)
+          .mockImplementation(() => undefined);
+        logger[method]?.('msg');
+        expect(spy).toHaveBeenCalledWith(
+          JSON.stringify({ level, message: 'msg', optionalParams: [] }),
+        );
+        spy.mockRestore();
+      },
+    );
   });
 });
