@@ -107,6 +107,14 @@ export interface Order extends Contacts {
     tickets: Ticket[];
 }
 
+export interface OrderTicketPayload {
+    film: string;
+    session: string;
+    row: number;
+    seat: number;
+    price: number;
+}
+
 export interface OrderResult extends Ticket {
     id: string;
 }
@@ -167,9 +175,20 @@ export class FilmAPI extends Api implements IFilmAPI {
      * @param order.phone - телефон пользователя
      */
     async orderTickets(order: Order): Promise<OrderResult[]> {
+        const payload: { email: string; phone: string; tickets: OrderTicketPayload[] } = {
+            email: order.email,
+            phone: order.phone,
+            tickets: order.tickets.map((ticket) => ({
+                film: ticket.film,
+                session: ticket.session,
+                row: ticket.row,
+                seat: ticket.seat,
+                price: ticket.price,
+            })),
+        };
         const data = await this._post<ApiListResponse<OrderResult>>(
             '/order',
-            order
+            payload
         );
         return data.items.map((ticket) => {
             const daytime = dayjs(ticket.daytime);
