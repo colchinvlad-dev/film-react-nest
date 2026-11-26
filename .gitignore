@@ -1,2 +1,7 @@
 node_modules
 .idea
+
+# Секреты и локальные настройки окружения
+.env
+*.env.local
+.env.*.local
